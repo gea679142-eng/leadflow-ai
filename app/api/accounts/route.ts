@@ -34,3 +34,12 @@ export async function POST(req: Request) {
   accounts.push(acc);
   return NextResponse.json(acc);
 }
+
+export async function DELETE(req: Request) {
+  const userId = await getUserId(req);
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { platform } = await req.json();
+  const idx = accounts.findIndex(a => a.userId === userId && a.platform === platform);
+  if (idx >= 0) accounts.splice(idx, 1);
+  return NextResponse.json({ success: true });
+}
