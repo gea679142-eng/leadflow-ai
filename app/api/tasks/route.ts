@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         matchReason: 'Discussed related topic in posts',
         followers: Math.floor(Math.random() * 50000),
         source: 'search',
-        status: 'pending',
+        status: 'pending' as const,
       });
     }
   }, 3000);

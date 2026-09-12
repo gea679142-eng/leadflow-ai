@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     passwordHash: await hashPassword(password),
     name: name || email.split('@')[0],
     language: 'en',
-    plan: 'free',
+    plan: 'free' as const,
     dailyLimit: 50,
     createdAt: now(),
   };
