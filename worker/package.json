@@ -1,0 +1,13 @@
+{
+  "name": "leadflow-worker",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "facebook": "node facebook.js",
+    "reddit": "node reddit.js"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

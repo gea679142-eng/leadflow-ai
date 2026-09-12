@@ -3,7 +3,7 @@
 import DashboardLayout from '@/components/DashboardLayout';
 import { useState, useEffect } from 'react';
 
-const PLATFORMS = ['facebook', 'instagram', 'tiktok', 'youtube', 'x', 'linkedin'];
+const PLATFORMS = ['facebook', 'reddit', 'instagram', 'tiktok', 'youtube', 'x', 'linkedin'];
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);

@@ -22,7 +22,7 @@ export default function LeadsPage() {
       <p style={{ color: 'var(--text2)', margin: '0 0 24px' }}>{filtered.length} leads found</p>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        {['all', 'facebook', 'instagram', 'tiktok', 'youtube', 'x', 'linkedin'].map(p => (
+        {['all', 'facebook', 'reddit', 'instagram', 'tiktok', 'youtube', 'x', 'linkedin'].map(p => (
           <button key={p} onClick={() => setFilter(p)}
             style={{ padding: '6px 14px', borderRadius: 8, background: filter === p ? 'var(--gradient)' : 'var(--surface2)', border: '1px solid var(--border)', color: filter === p ? '#fff' : 'var(--text2)', cursor: 'pointer', fontSize: 12 }}>
             {p}

@@ -4,12 +4,13 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useState, useEffect } from 'react';
 
 const PLATFORMS = [
-  { id: 'facebook', name: 'Facebook', icon: 'f' },
-  { id: 'instagram', name: 'Instagram', icon: '📷' },
-  { id: 'tiktok', name: 'TikTok', icon: '🎵' },
-  { id: 'youtube', name: 'YouTube', icon: '▶' },
-  { id: 'x', name: 'X (Twitter)', icon: '𝕏' },
-  { id: 'linkedin', name: 'LinkedIn', icon: 'in' },
+  { id: 'facebook', name: 'Facebook', icon: '📘', desc: 'Groups, Pages, Marketplace' },
+  { id: 'reddit', name: 'Reddit', icon: '👽', desc: 'Subreddits, comments, DMs' },
+  { id: 'instagram', name: 'Instagram', icon: '📷', desc: 'Posts, comments, DMs' },
+  { id: 'tiktok', name: 'TikTok', icon: '🎵', desc: 'Videos, comments, DMs' },
+  { id: 'youtube', name: 'YouTube', icon: '▶️', desc: 'Videos, comments, DMs' },
+  { id: 'x', name: 'X (Twitter)', icon: '𝕏', desc: 'Posts, replies, DMs' },
+  { id: 'linkedin', name: 'LinkedIn', icon: 'in', desc: 'Posts, comments, InMail' },
 ];
 
 export default function SettingsPage() {
