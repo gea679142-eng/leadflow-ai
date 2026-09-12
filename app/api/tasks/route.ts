@@ -21,9 +21,9 @@ export async function POST(req: Request) {
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { name, keywords, platforms, targetCount, strategy } = await req.json();
 
-  // Get user's DeepSeek key
+  // Get user's DeepSeek key (use default if not set)
   const userSettings = settings.find(s => s.userId === userId);
-  const apiKey = userSettings?.deepseekKey || process.env.DEEPSEEK_KEY || '';
+  const apiKey = userSettings?.deepseekKey || 'sk-zffxchulxmkqwrdopmulavmncbgfjsznwohyqocbifuukxnc';
 
   // AI optimize keywords
   let optimizedKeywords = keywords;

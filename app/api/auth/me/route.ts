@@ -1,13 +1,18 @@
 import { NextResponse } from 'next/server';
-import { verifyToken, getTokenFromHeaders } from '@/lib/auth';
-import { users } from '@/lib/db';
+import { jwtVerify } from 'jose';
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'leadflow-secret-key-change-in-production-2026'
+);
 
 export async function GET(req: Request) {
-  const token = getTokenFromHeaders(req.headers) || req.headers.get('cookie')?.match(/lf_token=([^;]+)/)?.[1];
+  const token = req.headers.get('cookie')?.match(/lf_token=([^;]+)/)?.[1];
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const payload = await verifyToken(token);
-  if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const user = users.find(u => u.id === payload.userId);
-  if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  return NextResponse.json({ email: user.email, name: user.name });
+
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return NextResponse.json({ email: payload.email, name: payload.email });
+  } catch {
+    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+  }
 }
