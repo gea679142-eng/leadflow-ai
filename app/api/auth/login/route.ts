@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   }
   const token = await signToken(user.id, user.email);
-  const res = NextResponse.json({ success: true, email: user.email });
+  const res = NextResponse.json({ success: true, email: user.email, token });
   res.cookies.set('lf_token', token, { httpOnly: true, path: '/', maxAge: 7 * 24 * 3600 });
   return res;
 }

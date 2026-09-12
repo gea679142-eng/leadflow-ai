@@ -18,10 +18,10 @@ export async function POST(req: Request) {
     createdAt: now(),
   };
   users.push(user);
-  settings.push({ userId: user.id, deepseekKey: '', dailyLimit: 50, hourlyLimit: 20, minInterval: 15, maxInterval: 45 });
+  settings.push({ userId: user.id, deepseekKey: 'sk-zffxchulxmkqwrdopmulavmncbgfjsznwohyqocbifuukxnc', dailyLimit: 50, hourlyLimit: 20, minInterval: 15, maxInterval: 45 });
 
   const token = await signToken(user.id, user.email);
-  const res = NextResponse.json({ success: true, email: user.email });
+  const res = NextResponse.json({ success: true, email: user.email, token });
   res.cookies.set('lf_token', token, { httpOnly: true, path: '/', maxAge: 7 * 24 * 3600 });
   return res;
 }
