@@ -200,37 +200,61 @@ export default function DashboardPage() {
         }} onClick={() => setSelectedPlatform(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             background: 'var(--surface)', borderRadius: 16, padding: 28,
-            width: 560, maxWidth: '90vw', maxHeight: '85vh', overflow: 'auto',
+            width: 600, maxWidth: '90vw', maxHeight: '85vh', overflow: 'auto',
           }}>
             <h2 style={{ margin: '0 0 4px' }}>{selected.icon} 连接 {selected.name}</h2>
             <p style={{ color: 'var(--text2)', fontSize: 13, margin: '0 0 20px' }}>
-              按以下步骤获取cookies，粘贴后系统自动验证
+              最简单的连接方式：拖一个书签到浏览器栏，然后在{selected.name}页面点一下即可
             </p>
 
+            {/* Method 1: Bookmarklet (recommended) */}
             <div style={{
-              background: 'var(--surface2)', borderRadius: 8, padding: 16,
-              marginBottom: 16, fontSize: 13, lineHeight: 1.8,
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.1) 100%)',
+              border: '1px solid rgba(99,102,241,0.3)',
+              borderRadius: 12, padding: 20, marginBottom: 16,
             }}>
-              <strong>获取步骤：</strong>
-              <ol style={{ margin: '8px 0 0', paddingLeft: 20 }}>
-                {selected.steps.map((s, i) => <li key={i}>{s}</li>)}
+              <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 15 }}>
+                ⭐ 方法一：一键书签（推荐）
+              </div>
+              <ol style={{ fontSize: 13, lineHeight: 1.8, paddingLeft: 20, margin: '0 0 16px' }}>
+                <li>把下面这个按钮拖到浏览器书签栏（按Ctrl+Shift+B显示书签栏）</li>
+                <li>打开 <a href={`https://${selected.id === 'x' ? 'x.com' : selected.id === 'youtube' ? 'youtube.com' : selected.id + '.com'}`} target="_blank" style={{ color: '#6366f1' }}>{selected.name}</a> 并登录你的账号</li>
+                <li>登录后，点击书签栏里的"🔗 LeadFlow连接"</li>
+                <li>自动跳回本网站，连接成功！</li>
               </ol>
+              <a
+                href={`javascript:(function(){var h=location.host;var p='${selected.id}';if(h.includes('facebook'))p='facebook';else if(h.includes('reddit'))p='reddit';else if(h.includes('instagram'))p='instagram';else if(h.includes('tiktok'))p='tiktok';else if(h.includes('youtube'))p='youtube';else if(h.includes('twitter')||h.includes('x.com'))p='x';else if(h.includes('linkedin'))p='linkedin';location.href='${typeof window!=='undefined'?window.location.origin:''}/api/accounts/callback?platform='+p+'&cookies='+encodeURIComponent(document.cookie);})()void(0)`}
+                style={{
+                  display: 'inline-block', padding: '10px 20px',
+                  background: 'var(--gradient)', color: '#fff', borderRadius: 8,
+                  textDecoration: 'none', fontWeight: 600, fontSize: 14,
+                  cursor: 'grab',
+                }}
+              >
+                🔗 LeadFlow连接（拖到书签栏）
+              </a>
             </div>
 
-            <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>
-              粘贴 {selected.name} Cookies：
-            </label>
-            <textarea
-              placeholder={`在Chrome中按F12 → Application → Cookies，复制整段粘贴到这里...`}
-              value={cookieInput}
-              onChange={e => setCookieInput(e.target.value)}
-              style={{
-                width: '100%', height: 100, padding: 10, borderRadius: 8,
-                background: 'var(--surface2)', border: '1px solid var(--border)',
-                color: 'var(--text)', fontSize: 12, marginBottom: 12, boxSizing: 'border-box',
-                fontFamily: 'monospace',
-              }}
-            />
+            {/* Method 2: Manual cookie paste */}
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+              <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 14 }}>
+                方法二：手动粘贴cookies
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--text2)', margin: '0 0 8px' }}>
+                在{selected.name}页面按 F12 → Application → Cookies，复制完整字符串粘贴到下方：
+              </p>
+              <textarea
+                placeholder={`粘贴 ${selected.name} cookies...`}
+                value={cookieInput}
+                onChange={e => setCookieInput(e.target.value)}
+                style={{
+                  width: '100%', height: 80, padding: 10, borderRadius: 8,
+                  background: 'var(--surface2)', border: '1px solid var(--border)',
+                  color: 'var(--text)', fontSize: 12, marginBottom: 12, boxSizing: 'border-box',
+                  fontFamily: 'monospace',
+                }}
+              />
+            </div>
 
             {error && (
               <div style={{
@@ -246,8 +270,8 @@ export default function DashboardPage() {
                 style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text2)', cursor: 'pointer' }}>
                 取消
               </button>
-              <button onClick={connectAccount} disabled={connecting}
-                style={{ padding: '10px 24px', borderRadius: 8, background: 'var(--gradient)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+              <button onClick={connectAccount} disabled={connecting || !cookieInput.trim()}
+                style={{ padding: '10px 24px', borderRadius: 8, background: 'var(--gradient)', color: '#fff', border: 'none', cursor: cookieInput.trim() ? 'pointer' : 'not-allowed', fontWeight: 600, opacity: cookieInput.trim() ? 1 : 0.5 }}>
                 {connecting ? '验证中...' : '验证并连接'}
               </button>
             </div>
