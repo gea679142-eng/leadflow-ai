@@ -2,30 +2,21 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
-
-const NAV = [
-  { href: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { href: '/tasks', label: 'Search Tasks', icon: '🔍' },
-  { href: '/leads', label: 'Leads', icon: '👥' },
-  { href: '/messages', label: 'Messages', icon: '💬' },
-  { href: '/records', label: 'Records', icon: '📈' },
-  { href: '/settings', label: 'Settings', icon: '⚙️' },
-];
-
-const LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'zh', label: '简体中文' },
-  { code: 'zh-TW', label: '繁體中文' },
-  { code: 'fr', label: 'Français' },
-  { code: 'de', label: 'Deutsch' },
-  { code: 'es', label: 'Español' },
-];
+import { useI18n, LANGS } from '@/lib/i18n';
 
 export default function Sidebar({ userEmail }: { userEmail: string }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [lang, setLang] = useState('en');
+  const { lang, setLang, t } = useI18n();
+
+  const NAV = [
+    { href: '/dashboard', label: t('nav.dashboard'), icon: '📊' },
+    { href: '/tasks', label: t('nav.tasks'), icon: '🔍' },
+    { href: '/leads', label: t('nav.leads'), icon: '👥' },
+    { href: '/messages', label: t('nav.messages'), icon: '💬' },
+    { href: '/records', label: t('nav.records'), icon: '📈' },
+    { href: '/settings', label: t('nav.settings'), icon: '⚙️' },
+  ];
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -48,9 +39,9 @@ export default function Sidebar({ userEmail }: { userEmail: string }) {
     }}>
       <div style={{ padding: '0 20px 20px' }}>
         <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, background: 'var(--gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          LeadFlow AI
+          {t('app.name')}
         </h1>
-        <p style={{ margin: '4px 0 0', fontSize: 11, color: 'var(--text2)' }}>Smart Lead Outreach</p>
+        <p style={{ margin: '4px 0 0', fontSize: 11, color: 'var(--text2)' }}>{t('app.tagline')}</p>
       </div>
 
       <nav style={{ flex: 1, padding: '0 12px' }}>
@@ -93,7 +84,7 @@ export default function Sidebar({ userEmail }: { userEmail: string }) {
             marginBottom: 12,
           }}
         >
-          {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
+          {LANGS.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
         </select>
 
         <div style={{
@@ -114,9 +105,9 @@ export default function Sidebar({ userEmail }: { userEmail: string }) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userEmail}</div>
-            <div style={{ fontSize: 10, color: 'var(--text2)' }}>Free Plan · 50/day</div>
+            <div style={{ fontSize: 10, color: 'var(--text2)' }}>{t('common.free_plan')}</div>
           </div>
-          <button onClick={handleLogout} style={{
+          <button onClick={handleLogout} title={t('nav.logout')} style={{
             background: 'none', border: 'none', color: 'var(--text2)', cursor: 'pointer', fontSize: 16,
           }}>↩</button>
         </div>

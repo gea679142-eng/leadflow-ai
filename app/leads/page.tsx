@@ -1,16 +1,11 @@
 'use client';
 
 import DashboardLayout from '@/components/DashboardLayout';
+import { useI18n } from '@/lib/i18n';
 import { useEffect, useState } from 'react';
 
-const STATUS_FLOW = [
-  { key: 'pending', label: 'Found', color: '#8888a0' },
-  { key: 'friend_requested', label: 'Friend Requested', color: '#f59e0b' },
-  { key: 'friend_accepted', label: 'Friend Accepted', color: '#3b82f6' },
-  { key: 'dmed', label: 'DM Sent', color: '#10b981' },
-];
-
 export default function LeadsPage() {
+  const { t } = useI18n();
   const [leads, setLeads] = useState<any[]>([]);
   const [filter, setFilter] = useState('all');
 
@@ -23,19 +18,20 @@ export default function LeadsPage() {
 
   const filtered = filter === 'all' ? leads : leads.filter(l => l.platform === filter);
 
-  const getStatusColor = (status: string) => {
-    const s = STATUS_FLOW.find(f => f.key === status);
-    return s?.color || '#888';
-  };
-  const getStatusLabel = (status: string) => {
-    const s = STATUS_FLOW.find(f => f.key === status);
-    return s?.label || status;
-  };
+  const STATUS_FLOW = [
+    { key: 'pending', label: t('leads.found'), color: '#8888a0' },
+    { key: 'friend_requested', label: t('leads.friend_requested'), color: '#f59e0b' },
+    { key: 'friend_accepted', label: t('leads.friend_accepted'), color: '#3b82f6' },
+    { key: 'messaged', label: t('leads.dm_sent'), color: '#10b981' },
+  ];
+
+  const getStatusColor = (status: string) => STATUS_FLOW.find(f => f.key === status)?.color || '#888';
+  const getStatusLabel = (status: string) => STATUS_FLOW.find(f => f.key === status)?.label || status;
 
   return (
     <DashboardLayout>
-      <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 8px' }}>Leads</h1>
-      <p style={{ color: 'var(--text2)', margin: '0 0 24px' }}>{filtered.length} leads · Funnel: Search → Friend Request → DM</p>
+      <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 8px' }}>{t('leads.title')}</h1>
+      <p style={{ color: 'var(--text2)', margin: '0 0 24px' }}>{filtered.length} · {t('leads.subtitle')}</p>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         {['all', 'facebook', 'reddit', 'instagram', 'tiktok', 'youtube', 'x', 'linkedin'].map(p => (
@@ -46,7 +42,6 @@ export default function LeadsPage() {
         ))}
       </div>
 
-      {/* Funnel summary */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         {STATUS_FLOW.map(s => {
           const count = leads.filter(l => (l.status || 'pending') === s.key).length;
@@ -78,7 +73,7 @@ export default function LeadsPage() {
           </div>
         ))}
         {filtered.length === 0 && (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text2)' }}>No leads yet. Create a search task first.</div>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text2)' }}>{t('leads.no_leads')}</div>
         )}
       </div>
     </DashboardLayout>

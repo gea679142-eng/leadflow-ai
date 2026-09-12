@@ -14,10 +14,9 @@ export interface User {
 export interface ConnectedAccount {
   id: string;
   userId: string;
-  platform: 'facebook' | 'instagram' | 'tiktok' | 'youtube' | 'x' | 'linkedin';
+  platform: 'facebook' | 'reddit' | 'instagram' | 'tiktok' | 'youtube' | 'x' | 'linkedin';
   username: string;
-  cookies: string;
-  status: 'connected' | 'disconnected' | 'risky';
+  status: 'connected' | 'disconnected';
   todaySent: number;
   dailyLimit: number;
   connectedAt: string;
@@ -29,11 +28,11 @@ export interface SearchTask {
   name: string;
   keywords: string;
   platforms: string[];
+  strategy: string;
   targetCount: number;
-  status: 'pending' | 'searching' | 'filtering' | 'completed';
+  status: 'pending' | 'running' | 'completed';
   progress: number;
   discovered: number;
-  filtered: number;
   createdAt: string;
 }
 
@@ -44,21 +43,20 @@ export interface Lead {
   platform: string;
   username: string;
   profileUrl: string;
-  avatar: string;
   intentScore: number;
   matchReason: string;
-  followers: number;
-  source: string;
-  status: 'pending' | 'selected' | 'excluded' | 'messaged';
+  status: 'pending' | 'friend_requested' | 'friend_accepted' | 'messaged' | 'commented' | 'excluded';
+  contacted: boolean;
 }
 
 export interface MessageRecord {
   id: string;
   leadId: string;
   userId: string;
+  platform: string;
   content: string;
+  type: 'dm' | 'comment';
   status: 'pending' | 'sent' | 'failed';
-  error?: string;
   sentAt?: string;
 }
 
@@ -66,9 +64,6 @@ export interface UserSettings {
   userId: string;
   deepseekKey: string;
   dailyLimit: number;
-  hourlyLimit: number;
-  minInterval: number;
-  maxInterval: number;
 }
 
 // In-memory stores
