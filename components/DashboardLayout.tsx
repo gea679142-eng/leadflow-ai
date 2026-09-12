@@ -9,16 +9,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    fetch('/api/auth/me', { signal: controller.signal })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
+        clearTimeout(timeout);
         if (data?.email) setEmail(data.email);
-        else router.push('/auth/login');
+        else window.location.href = '/auth/login';
       })
-      .catch(() => router.push('/auth/login'));
-  }, [router]);
+      .catch(() => {
+        clearTimeout(timeout);
+        window.location.href = '/auth/login';
+      });
+    return () => { clearTimeout(timeout); controller.abort(); };
+  }, []);
 
-  if (!email) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text2)' }}>Loading...</div>;
+  if (!email) return (
+    <div style={{ padding: 40, textAlign: 'center', color: 'var(--text2)' }}>
+      Loading...
+      <div style={{ marginTop: 16 }}>
+        <a href="/auth/login" style={{ color: '#6366f1', fontSize: 14 }}>Click here to login</a>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ display: 'flex' }}>
