@@ -79,6 +79,18 @@ export default function DashboardPage() {
   const [cookieInput, setCookieInput] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState('');
+  const [connMsg, setConnMsg] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('connected')) {
+      setConnMsg(`✅ ${params.get('connected')} 连接成功！`);
+      window.history.replaceState({}, '', '/dashboard');
+    } else if (params.get('connect_error')) {
+      setConnMsg('❌ 连接失败：请确保你在已登录的社媒页面点击书签');
+      window.history.replaceState({}, '', '/dashboard');
+    }
+  }, []);
 
   const loadData = () => {
     fetch('/api/dashboard').then(r => r.json()).then(setStats).catch(() => {});
@@ -129,7 +141,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (bookmarkRef.current) {
       const origin = window.location.origin;
-      bookmarkRef.current.href = `javascript:(function(){var h=location.host;var p='${selectedPlatform || 'facebook'}';if(h.includes('facebook'))p='facebook';else if(h.includes('reddit'))p='reddit';else if(h.includes('instagram'))p='instagram';else if(h.includes('tiktok'))p='tiktok';else if(h.includes('youtube'))p='youtube';else if(h.includes('twitter')||h.includes('x.com'))p='x';else if(h.includes('linkedin'))p='linkedin';location.href='${origin}/api/accounts/callback?platform='+p+'&cookies='+encodeURIComponent(document.cookie);})()`;
+      bookmarkRef.current.href = `javascript:(function(){var h=location.host;var p='${selectedPlatform || 'facebook'}';if(h.includes('facebook'))p='facebook';else if(h.includes('reddit'))p='reddit';else if(h.includes('instagram'))p='instagram';else if(h.includes('tiktok'))p='tiktok';else if(h.includes('youtube'))p='youtube';else if(h.includes('twitter')||h.includes('x.com'))p='x';else if(h.includes('linkedin'))p='linkedin';location.href='https://leadflow-ai-z2rf.onrender.com/api/accounts/callback?platform='+p+'&cookies='+encodeURIComponent(document.cookie);})()`;
     }
   }, [selectedPlatform]);
 
@@ -139,6 +151,17 @@ export default function DashboardPage() {
       <p style={{ color: 'var(--text2)', margin: '0 0 24px' }}>
         {needConnect ? '第一步：连接你的社交平台账号，然后开始获客' : `已连接 ${connectedCount} 个平台，可以创建任务了`}
       </p>
+
+      {connMsg && (
+        <div style={{
+          background: connMsg.startsWith('✅') ? 'rgba(16,185,129,0.1)' : 'rgba(248,113,113,0.1)',
+          border: `1px solid ${connMsg.startsWith('✅') ? 'rgba(16,185,129,0.3)' : 'rgba(248,113,113,0.3)'}`,
+          borderRadius: 12, padding: '14px 18px', marginBottom: 20,
+          color: connMsg.startsWith('✅') ? '#10b981' : '#f87171', fontSize: 14,
+        }}>
+          {connMsg}
+        </div>
+      )}
 
       {needConnect && (
         <div style={{
