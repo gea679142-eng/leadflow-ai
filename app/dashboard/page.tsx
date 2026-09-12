@@ -2,7 +2,7 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { useI18n } from '@/lib/i18n';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const PLATFORMS = [
   {
@@ -124,6 +124,15 @@ export default function DashboardPage() {
   const needConnect = connectedCount === 0;
   const selected = PLATFORMS.find(p => p.id === selectedPlatform);
 
+  const bookmarkRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    if (bookmarkRef.current) {
+      const origin = window.location.origin;
+      bookmarkRef.current.href = `javascript:(function(){var h=location.host;var p='${selectedPlatform || 'facebook'}';if(h.includes('facebook'))p='facebook';else if(h.includes('reddit'))p='reddit';else if(h.includes('instagram'))p='instagram';else if(h.includes('tiktok'))p='tiktok';else if(h.includes('youtube'))p='youtube';else if(h.includes('twitter')||h.includes('x.com'))p='x';else if(h.includes('linkedin'))p='linkedin';location.href='${origin}/api/accounts/callback?platform='+p+'&cookies='+encodeURIComponent(document.cookie);})()`;
+    }
+  }, [selectedPlatform]);
+
   return (
     <DashboardLayout>
       <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 8px' }}>{t('nav.dashboard')}</h1>
@@ -223,7 +232,7 @@ export default function DashboardPage() {
                 <li>自动跳回本网站，连接成功！</li>
               </ol>
               <a
-                href={`javascript:(function(){var h=location.host;var p='${selected.id}';if(h.includes('facebook'))p='facebook';else if(h.includes('reddit'))p='reddit';else if(h.includes('instagram'))p='instagram';else if(h.includes('tiktok'))p='tiktok';else if(h.includes('youtube'))p='youtube';else if(h.includes('twitter')||h.includes('x.com'))p='x';else if(h.includes('linkedin'))p='linkedin';location.href='${typeof window!=='undefined'?window.location.origin:''}/api/accounts/callback?platform='+p+'&cookies='+encodeURIComponent(document.cookie);})()void(0)`}
+                ref={bookmarkRef}
                 style={{
                   display: 'inline-block', padding: '10px 20px',
                   background: 'var(--gradient)', color: '#fff', borderRadius: 8,
