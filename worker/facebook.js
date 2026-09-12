@@ -1,17 +1,17 @@
 /**
  * LeadFlow AI - Facebook Worker
- * Uses Playwright with the user's Chrome profile (already logged into Facebook)
- * to search for users matching keywords and send DMs.
+ * Full automation: Search → Add Friend → Wait → DM
+ *
+ * Usage:
+ *   node facebook.js search "keywords"     - Search people on Facebook
+ *   node facebook.js addfriend <profileUrl>  - Send friend request
+ *   node facebook.js dm <profileUrl> "msg"   - Send DM
+ *   node facebook.js auto "keywords" "msg"   - Full auto: search + add friend
  */
 import { chromium } from 'playwright';
-import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-const WEBSITE_URL = 'https://leadflow-ai-z2rf.onrender.com';
-const STATE_FILE = path.join(os.homedir(), '.leadflow-fb-state.json');
-
-// Safe delays (ms)
 const HUMAN_DELAY_MIN = 2000;
 const HUMAN_DELAY_MAX = 5000;
 
@@ -21,139 +21,135 @@ function humanDelay() {
 }
 
 async function launchBrowser() {
-  // Use the user's Chrome profile where Facebook is already logged in
   const userDataDir = path.join(os.homedir(), 'AppData', 'Local', 'Google', 'Chrome', 'User Data');
-  
-  console.log('Launching Chrome with user profile...');
-  console.log('Profile dir:', userDataDir);
-  
-  const browser = await chromium.launchPersistentContext(userDataDir, {
-    headless: false, // Show browser so user can see
+  console.log('Launching Chrome...');
+  return chromium.launchPersistentContext(userDataDir, {
+    headless: false,
     channel: 'chrome',
     viewport: { width: 1280, height: 800 },
     args: ['--disable-blink-features=AutomationControlled'],
   });
-  
-  return browser;
 }
 
-async function searchFacebookUsers(page, keywords) {
-  console.log(`\n=== Searching Facebook for: "${keywords}" ===`);
-  
-  // Go to Facebook search
-  await page.goto('https://www.facebook.com/search/people/?q=' + encodeURIComponent(keywords));
+async function searchPeople(page, keywords) {
+  console.log(`\n=== Searching: "${keywords}" ===`);
+  await page.goto(`https://www.facebook.com/search/people/?q=${encodeURIComponent(keywords)}`);
   await humanDelay();
-  
-  // Extract user profiles from search results
+
   const leads = await page.evaluate(() => {
     const results = [];
-    // Facebook search results - user profile links
-    const links = document.querySelectorAll('a[href*="/people/"], a[href*="?id="][role="link"]');
+    const links = document.querySelectorAll('a[href*="/"]');
     const seen = new Set();
-    
     links.forEach(link => {
-      const href = link.getAttribute('href');
+      const href = link.getAttribute('href') || '';
       const text = link.textContent?.trim();
-      if (href && text && text.length > 2 && !seen.has(href)) {
+      if (href.match(/^https:\/\/www\.facebook\.com\/[a-zA-Z0-9.]+/) && text && text.length > 2 && !seen.has(href)) {
         seen.add(href);
-        results.push({
-          username: text,
-          profileUrl: href.startsWith('http') ? href : 'https://www.facebook.com' + href,
-          source: 'facebook_search',
-        });
+        results.push({ name: text, url: href });
       }
     });
-    
-    return results.slice(0, 20); // Limit to 20 per search
+    return results.slice(0, 20);
   });
-  
-  console.log(`Found ${leads.length} potential users`);
+
+  console.log(`Found ${leads.length} users:`);
+  leads.forEach((l, i) => console.log(`  ${i+1}. ${l.name} - ${l.url}`));
   return leads;
 }
 
-async function sendFacebookDM(page, profileUrl, message) {
-  console.log(`\n--- Sending DM to: ${profileUrl} ---`);
-  
-  try {
-    // Navigate to the user's profile
-    await page.goto(profileUrl);
+async function sendFriendRequest(page, profileUrl) {
+  console.log(`\n--- Friend request: ${profileUrl} ---`);
+  await page.goto(profileUrl);
+  await humanDelay();
+
+  // Look for "Add friend" button
+  const addBtn = page.locator('div[role="button"]:has-text("加为好友"), div[role="button"]:has-text("Add friend"), div[role="button"]:has-text("Add Friend")').first();
+  if (await addBtn.isVisible({ timeout: 5000 })) {
+    await addBtn.click();
     await humanDelay();
-    
-    // Look for Message button
-    const messageButton = await page.locator('div[role="button"]:has-text("Message")').first();
-    if (await messageButton.isVisible({ timeout: 5000 })) {
-      await messageButton.click();
-      await humanDelay();
-      
-      // Find message input
-      const messageInput = await page.locator('div[contenteditable="true"][role="textbox"]').last();
-      await messageInput.click();
-      await humanDelay();
-      
-      // Type the message
-      await messageInput.fill(message);
-      await humanDelay();
-      
-      // Press Enter to send
-      await page.keyboard.press('Enter');
-      await humanDelay();
-      
-      console.log('✅ DM sent successfully!');
-      return { success: true };
-    } else {
-      console.log('❌ Message button not found');
-      return { success: false, error: 'No message button' };
-    }
-  } catch (err) {
-    console.log('❌ Error sending DM:', err.message);
-    return { success: false, error: err.message };
+    console.log('✅ Friend request sent!');
+    return { success: true, action: 'friend_request_sent' };
   }
+
+  // Check if already pending
+  const pending = page.locator('div[role="button"]:has-text("取消请求"), div[role="button"]:has-text("Cancel")').first();
+  if (await pending.isVisible({ timeout: 2000 })) {
+    console.log('⏳ Already pending');
+    return { success: true, action: 'already_pending' };
+  }
+
+  console.log('❌ Add friend button not found');
+  return { success: false, error: 'No add friend button' };
 }
 
-async function main() {
-  const args = process.argv.slice(2);
-  const command = args[0] || 'test';
-  
-  if (command === 'search') {
-    const keywords = args[1] || 'fitness coach';
-    const browser = await launchBrowser();
-    const page = await browser.newPage();
-    
-    const leads = await searchFacebookUsers(page, keywords);
-    console.log('\n=== RESULTS ===');
-    leads.forEach((lead, i) => {
-      console.log(`${i+1}. ${lead.username} - ${lead.profileUrl}`);
-    });
-    
-    await browser.close();
-  } else if (command === 'dm') {
-    const profileUrl = args[1];
-    const message = args[2] || 'Hi! I noticed your profile and wanted to connect.';
-    const browser = await launchBrowser();
-    const page = await browser.newPage();
-    
-    const result = await sendFacebookDM(page, profileUrl, message);
-    console.log('Result:', result);
-    
-    await browser.close();
-  } else if (command === 'test') {
-    console.log('=== LeadFlow Facebook Worker Test ===');
-    console.log('Commands:');
-    console.log('  node facebook.js search "keywords"  - Search Facebook users');
-    console.log('  node facebook.js dm <profileUrl> "message"  - Send DM to user');
-    console.log('');
-    
-    // Quick test - just open Facebook
-    const browser = await launchBrowser();
-    const page = await browser.newPage();
-    await page.goto('https://www.facebook.com');
+async function sendDM(page, profileUrl, message) {
+  console.log(`\n--- DM to: ${profileUrl} ---`);
+  await page.goto(`https://www.facebook.com/messages/t/${profileUrl.split('/').pop()}`);
+  await humanDelay();
+
+  // Click continue if needed
+  const continueBtn = page.locator('div[role="button"]:has-text("继续"), div[role="button"]:has-text("Continue")').first();
+  if (await continueBtn.isVisible({ timeout: 3000 })) {
+    await continueBtn.click();
     await humanDelay();
-    console.log('Facebook page loaded. Title:', await page.title());
-    console.log('Browser is open. Press Ctrl+C to close.');
-    
-    // Keep browser open for testing
-    await new Promise(() => {});
   }
+
+  // Check for stranger limit
+  const body = await page.textContent('body');
+  if (body.includes('陌生消息') || body.includes('limit')) {
+    console.log('⚠️ Stranger message limit reached');
+    return { success: false, error: 'stranger_limit' };
+  }
+
+  // Type message
+  const input = page.locator('div[contenteditable="true"][role="textbox"]').last();
+  await input.click();
+  await humanDelay();
+  await input.fill(message);
+  await humanDelay();
+  await page.keyboard.press('Enter');
+  await humanDelay();
+
+  console.log('✅ DM sent!');
+  return { success: true, action: 'dm_sent' };
 }
 
-main().catch(console.error);
+async function autoFlow(keywords, dmMessage) {
+  const browser = await launchBrowser();
+  const page = await browser.newPage();
+
+  // Step 1: Search
+  const leads = await searchPeople(page, keywords);
+
+  // Step 2: Send friend requests to top leads
+  for (const lead of leads.slice(0, 5)) {
+    await sendFriendRequest(page, lead.url);
+    await humanDelay();
+  }
+
+  console.log('\n=== Auto flow complete ===');
+  console.log('Friend requests sent. Wait for acceptance, then run DM.');
+  await browser.close();
+}
+
+// Main
+const [cmd, ...args] = process.argv.slice(2);
+if (cmd === 'search') {
+  const browser = await launchBrowser();
+  const page = await browser.newPage();
+  await searchPeople(page, args[0] || 'fitness coach');
+  await browser.close();
+} else if (cmd === 'addfriend') {
+  const browser = await launchBrowser();
+  const page = await browser.newPage();
+  await sendFriendRequest(page, args[0]);
+  await browser.close();
+} else if (cmd === 'dm') {
+  const browser = await launchBrowser();
+  const page = await browser.newPage();
+  await sendDM(page, args[0], args[1] || 'Hi! Great to connect.');
+  await browser.close();
+} else if (cmd === 'auto') {
+  await autoFlow(args[0] || 'saas founder', args[1] || 'Hi! Great to connect.');
+} else {
+  console.log('Usage: node facebook.js [search|addfriend|dm|auto]');
+}
