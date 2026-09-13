@@ -224,7 +224,7 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* Connection modal */}
+      {/* Connection modal - super simple 2-step */}
       {selected && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
@@ -232,60 +232,79 @@ export default function DashboardPage() {
         }} onClick={() => setSelectedPlatform(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             background: 'var(--surface)', borderRadius: 16, padding: 28,
-            width: 600, maxWidth: '90vw', maxHeight: '85vh', overflow: 'auto',
+            width: 560, maxWidth: '90vw', maxHeight: '85vh', overflow: 'auto',
           }}>
-            <h2 style={{ margin: '0 0 4px' }}>{selected.icon} 连接 {selected.name}</h2>
-            <p style={{ color: 'var(--text2)', fontSize: 13, margin: '0 0 20px' }}>
-              最简单的连接方式：拖一个书签到浏览器栏，然后在{selected.name}页面点一下即可
-            </p>
+            <h2 style={{ margin: '0 0 20px' }}>{selected.icon} 连接 {selected.name}</h2>
 
-            {/* Method 1: Bookmarklet (recommended) */}
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.1) 100%)',
-              border: '1px solid rgba(99,102,241,0.3)',
-              borderRadius: 12, padding: 20, marginBottom: 16,
-            }}>
-              <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 15 }}>
-                ⭐ 方法一：一键书签（推荐）
+            {/* Step 1 */}
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 20 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%', background: 'var(--gradient)',
+                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, flexShrink: 0, fontSize: 14,
+              }}>1</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, marginBottom: 6 }}>打开{selected.name}并登录</div>
+                <a
+                  href={`https://${selected.id === 'x' ? 'x.com' : selected.id === 'youtube' ? 'youtube.com' : selected.id + '.com'}`}
+                  target="_blank"
+                  style={{
+                    display: 'inline-block', padding: '10px 20px', borderRadius: 8,
+                    background: selected.color, color: '#fff', textDecoration: 'none',
+                    fontWeight: 600, fontSize: 14,
+                  }}
+                >
+                  打开 {selected.name} →
+                </a>
               </div>
-              <ol style={{ fontSize: 13, lineHeight: 1.8, paddingLeft: 20, margin: '0 0 16px' }}>
-                <li>把下面这个按钮拖到浏览器书签栏（按Ctrl+Shift+B显示书签栏）</li>
-                <li>打开 <a href={`https://${selected.id === 'x' ? 'x.com' : selected.id === 'youtube' ? 'youtube.com' : selected.id + '.com'}`} target="_blank" style={{ color: '#6366f1' }}>{selected.name}</a> 并登录你的账号</li>
-                <li>登录后，点击书签栏里的"🔗 LeadFlow连接"</li>
-                <li>自动跳回本网站，连接成功！</li>
-              </ol>
-              <a
-                ref={bookmarkRef}
-                style={{
-                  display: 'inline-block', padding: '10px 20px',
-                  background: 'var(--gradient)', color: '#fff', borderRadius: 8,
-                  textDecoration: 'none', fontWeight: 600, fontSize: 14,
-                  cursor: 'grab',
-                }}
-              >
-                🔗 LeadFlow连接（拖到书签栏）
-              </a>
             </div>
 
-            {/* Method 2: Manual cookie paste */}
-            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
-              <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 14 }}>
-                方法二：手动粘贴cookies
-              </div>
-              <p style={{ fontSize: 12, color: 'var(--text2)', margin: '0 0 8px' }}>
-                在{selected.name}页面按 F12 → Application → Cookies，复制完整字符串粘贴到下方：
-              </p>
-              <textarea
-                placeholder={`粘贴 ${selected.name} cookies...`}
-                value={cookieInput}
-                onChange={e => setCookieInput(e.target.value)}
-                style={{
-                  width: '100%', height: 80, padding: 10, borderRadius: 8,
-                  background: 'var(--surface2)', border: '1px solid var(--border)',
-                  color: 'var(--text)', fontSize: 12, marginBottom: 12, boxSizing: 'border-box',
-                  fontFamily: 'monospace',
+            {/* Step 2 */}
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 20 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%', background: 'var(--gradient)',
+                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, flexShrink: 0, fontSize: 14,
+              }}>2</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, marginBottom: 6 }}>在{selected.name}页面按F12，点Console，粘贴这行代码回车</div>
+                <div style={{
+                  background: 'var(--surface2)', borderRadius: 8, padding: '10px 14px',
+                  fontFamily: 'monospace', fontSize: 13, color: '#6366f1',
+                  marginBottom: 8, cursor: 'pointer',
+                  border: '1px solid var(--border)',
                 }}
-              />
+                onClick={() => { navigator.clipboard?.writeText('copy(document.cookie)'); }}
+                title="点击复制">
+                  copy(document.cookie)
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text2)' }}>
+                  点击代码自动复制，然后粘贴到Console按回车（会自动复制cookies）
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 16 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%', background: 'var(--gradient)',
+                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, flexShrink: 0, fontSize: 14,
+              }}>3</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, marginBottom: 6 }}>回到这里粘贴cookies（Ctrl+V），点连接</div>
+                <textarea
+                  placeholder="在这里粘贴 (Ctrl+V)..."
+                  value={cookieInput}
+                  onChange={e => setCookieInput(e.target.value)}
+                  style={{
+                    width: '100%', height: 70, padding: 10, borderRadius: 8,
+                    background: 'var(--surface2)', border: '1px solid var(--border)',
+                    color: 'var(--text)', fontSize: 12, boxSizing: 'border-box',
+                    fontFamily: 'monospace',
+                  }}
+                />
+              </div>
             </div>
 
             {error && (
@@ -304,7 +323,7 @@ export default function DashboardPage() {
               </button>
               <button onClick={connectAccount} disabled={connecting || !cookieInput.trim()}
                 style={{ padding: '10px 24px', borderRadius: 8, background: 'var(--gradient)', color: '#fff', border: 'none', cursor: cookieInput.trim() ? 'pointer' : 'not-allowed', fontWeight: 600, opacity: cookieInput.trim() ? 1 : 0.5 }}>
-                {connecting ? '验证中...' : '验证并连接'}
+                {connecting ? '连接中...' : '连接'}
               </button>
             </div>
           </div>
